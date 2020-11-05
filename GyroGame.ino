@@ -45,22 +45,7 @@ uint32_t timer;
 uint8_t i2cData[14]; // Buffer for I2C data
 
 
-
-
-
-void setup()   {                
- display.begin(SSD1306_SWITCHCAPVCC);
-  display.display();
-  delay(2000);
- display.clearDisplay();
-
-  pinMode(6, OUTPUT);             // LED
-  pinMode(7, INPUT_PULLUP);       // game or basic
-  basic = digitalRead(7);
-
-  randomSeed(analogRead(0));
-  setRandom();
-
+void MPU() {
   Serial.begin(115200);
   Wire.begin();
   TWBR = ((F_CPU / 400000L) - 16) / 2; // Set I2C frequency to 400kHz
@@ -78,7 +63,7 @@ void setup()   {
     while (1);
   }
 
-  delay(100); // Wait for sensor to stabilize
+//  delay(100); // Wait for sensor to stabilize
 
   /* Set kalman and gyro starting angle */
   while (i2cRead(0x3B, i2cData, 6));
@@ -106,19 +91,37 @@ void setup()   {
 
   timer = micros();
   start_time = millis();
+}
+
+
+
+void setup()   {
+   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+
+  pinMode(6, OUTPUT);             // LED
+  pinMode(7, INPUT_PULLUP);       // game or basic
+  basic = digitalRead(7);
+
+  randomSeed(analogRead(0));
+  setRandom();
+
+  MPU();
 
 }
 
 void loop() {
-  
+
   getIMU();
-  
+
   drawIMUbasic();
 
- Serial.print(roll);
+  Serial.print(roll);
   Serial.print("\t");
   Serial.println(pitch);
-  delay(100);
+//  delay(100);
 
 }
 
@@ -200,11 +203,36 @@ void setRandom() {
 
 void drawIMUbasic() {
 
-    posX = centerX - roll / 2.0;
-    posY = centerY + pitch / 2.0;
-  
-  display.fillCircle(posX, posY, 2, WHITE);
+  //    posX = centerX - roll / 2.0;
+  //    posY = centerY + pitch / 2.0;
+  //
+  //  display.fillCircle(posX, posY, 2, WHITE);
+  //  display.display();
+  //  display.clearDisplay();
+
+  display.drawRect(66, 0, 62, 64, WHITE);
+
+
+  display.drawRect(targetX - 2, targetY - 2, 6, 6, WHITE);
+
+
+  posX -= roll / 10.0;
+  posY += pitch / 10.0;
+  posX = constrain(posX, 67, 126);
+  posY = constrain(posY, 1, 62);
+  display.fillCircle(posX, posY, 4, WHITE);
   display.display();
   display.clearDisplay();
+  if (posX > (targetX - 2) && posX < (targetX + 2) && posY > (targetY - 2) && posY < (targetY + 2)) {
+    success_counter++;
+    digitalWrite(6, HIGH);
+    setRandom();
+    tone(9, 1000, 100);
+  }
+  else {
+    digitalWrite(6, LOW);
+  }
+
+
 
 }
