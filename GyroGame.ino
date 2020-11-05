@@ -63,7 +63,7 @@ void MPU() {
     while (1);
   }
 
-//  delay(100); // Wait for sensor to stabilize
+  //  delay(100); // Wait for sensor to stabilize
 
   /* Set kalman and gyro starting angle */
   while (i2cRead(0x3B, i2cData, 6));
@@ -96,9 +96,9 @@ void MPU() {
 
 
 void setup()   {
-   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    for (;;); // Don't proceed, loop forever
   }
 
   pinMode(6, OUTPUT);             // LED
@@ -121,7 +121,7 @@ void loop() {
   Serial.print(roll);
   Serial.print("\t");
   Serial.println(pitch);
-//  delay(100);
+  //  delay(100);
 
 }
 
@@ -203,21 +203,27 @@ void setRandom() {
 
 void drawIMUbasic() {
 
-  //    posX = centerX - roll / 2.0;
-  //    posY = centerY + pitch / 2.0;
-  //
-  //  display.fillCircle(posX, posY, 2, WHITE);
-  //  display.display();
-  //  display.clearDisplay();
-
   display.drawRect(66, 0, 62, 64, WHITE);
-
-
   display.drawRect(targetX - 2, targetY - 2, 6, 6, WHITE);
-
-
-  posX -= roll / 10.0;
-  posY += pitch / 10.0;
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.println("pitch: ");
+  display.setCursor(0, 10);
+  display.println(pitch);
+  display.setCursor(0, 20);
+  display.println("roll: ");
+  display.setCursor(0, 30);
+  display.println(roll);
+  display.setCursor(0, 40);
+  display.println("score: ");
+  display.setCursor(37, 40);
+  display.println(success_counter);
+  display.setCursor(0, 50);
+  display.print(abs(sec - (millis() - start_time) / 1000.0));
+  display.print("s");
+  posX += roll / 10.0;
+  posY -= pitch / 10.0;
   posX = constrain(posX, 67, 126);
   posY = constrain(posY, 1, 62);
   display.fillCircle(posX, posY, 4, WHITE);
